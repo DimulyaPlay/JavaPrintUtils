@@ -9,6 +9,7 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.io.MemoryUsageSetting;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.printing.Orientation;
 import org.apache.pdfbox.printing.PDFPageable;
 import org.apache.pdfbox.text.PDFTextStripper;
 import py4j.GatewayServer;
@@ -37,7 +38,7 @@ class JPrint {
         assert docPrintJob != null;
         job.setPrintService(docPrintJob.getPrintService());
         job.setJobName(jobName);
-        job.setPageable(new PDFPageable(pdf));
+        job.setPageable(new PDFPageable(pdf, Orientation.AUTO, false, 300.0F));
         job.print();
         pdf.close();
         System.gc();
