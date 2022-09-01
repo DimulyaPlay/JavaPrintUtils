@@ -9,13 +9,13 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.io.MemoryUsageSetting;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.printing.Orientation;
-import org.apache.pdfbox.printing.PDFPageable;
 import org.apache.pdfbox.text.PDFTextStripper;
 import py4j.GatewayServer;
 
 import javax.print.DocPrintJob;
 import javax.print.PrintService;
+import java.awt.print.PageFormat;
+import java.awt.print.Paper;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.File;
@@ -33,14 +33,16 @@ class JPrint {
                 i = count;
             }
         }
-        PDDocument pdf = Loader.loadPDF(new File(filepath));
         PrinterJob job = PrinterJob.getPrinterJob();
+        PageFormat loPageFormat  = job.defaultPage();
+        Paper loPaper = loPageFormat.getPaper();
+        loPaper.setImageableArea(0,0,loPageFormat.getWidth(),loPageFormat.getHeight());
         assert docPrintJob != null;
         job.setPrintService(docPrintJob.getPrintService());
         job.setJobName(jobName);
-        job.setPageable(new PDFPageable(pdf, Orientation.AUTO, false, 300.0F));
+        loPageFormat.setPaper(loPaper);
+        job.setPrintable(new com.spire.pdf.PdfDocument(filepath), loPageFormat);
         job.print();
-        pdf.close();
         System.gc();
     }
 
