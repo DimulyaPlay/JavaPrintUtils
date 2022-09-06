@@ -1,7 +1,6 @@
 import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.geom.PageSize;
-import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Image;
@@ -23,7 +22,7 @@ import java.io.IOException;
 
 class JPrint {
 
-    static void printToPrinter(String filepath, String printerName, String jobName) throws IOException, PrinterException {
+    static void printToPrinter(String filepath, String printerName, String jobName) throws PrinterException {
         PrintService[] service = PrinterJob.lookupPrintServices();
         DocPrintJob docPrintJob = null;
         int count = service.length;
@@ -33,22 +32,25 @@ class JPrint {
                 i = count;
             }
         }
+
         PrinterJob job = PrinterJob.getPrinterJob();
         PageFormat loPageFormat  = job.defaultPage();
         Paper loPaper = loPageFormat.getPaper();
         loPaper.setImageableArea(0,0,loPageFormat.getWidth(),loPageFormat.getHeight());
-        assert docPrintJob != null;
-        job.setPrintService(docPrintJob.getPrintService());
+        if (docPrintJob != null) {
+            job.setPrintService(docPrintJob.getPrintService());
+        }
         job.setJobName(jobName);
         loPageFormat.setPaper(loPaper);
-        job.setPrintable(new com.spire.pdf.PdfDocument(filepath), loPageFormat);
+        com.spire.pdf.PdfDocument document = new com.spire.pdf.PdfDocument(filepath);
+        job.setPrintable(document, loPageFormat);
         job.print();
-        System.gc();
+        document.close();
     }
 
     static String generatePDFFromImage(String filename) throws IOException {
         PdfWriter writer = new PdfWriter(filename+".pdf");
-        PdfDocument pdf = new PdfDocument(writer);
+        com.itextpdf.kernel.pdf.PdfDocument pdf = new com.itextpdf.kernel.pdf.PdfDocument(writer);
         pdf.addNewPage(PageSize.A4);
         Document document = new Document(pdf);
         ImageData data = ImageDataFactory.create(filename);
@@ -60,7 +62,8 @@ class JPrint {
         image.setAutoScale(true);
         document.add(image);
         document.close();
-        System.gc();
+        pdf.close();
+        writer.close();
         return filename+".pdf";
     }
 
@@ -71,7 +74,6 @@ class JPrint {
         String text = pdfStripper.getText(document);
         document.close();
         text = text.replace("\n", "").replace("\r", "");
-        System.gc();
         return text;
     }
 
@@ -86,7 +88,6 @@ class JPrint {
         PDFMerger.mergeDocuments(MemoryUsageSetting.setupMainMemoryOnly());
         file1.delete();
         file2.delete();
-        System.gc();
         return newFilename;
     }
 
