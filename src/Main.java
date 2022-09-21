@@ -77,17 +77,21 @@ class JPrint {
         return text;
     }
 
-    static String concatenateTwoPdfs(String filename1,String filename2) throws IOException {
-        String newFilename = filename1+"+prot.pdf";
+    static String concatenatePdfs(String[] filenames) throws IOException {
+        String newFilename = filenames[0]+"+concatenated.pdf";
         PDFMergerUtility PDFMerger = new PDFMergerUtility();
         PDFMerger.setDestinationFileName(newFilename);
-        File file1 = new File(filename1);
-        File file2 = new File(filename2);
-        PDFMerger.addSource(file1);
-        PDFMerger.addSource(file2);
+        for (String filename : filenames) {
+            File file = new File(filename);
+            PDFMerger.addSource(file);
+        }
+
         PDFMerger.mergeDocuments(MemoryUsageSetting.setupMainMemoryOnly());
-        file1.delete();
-        file2.delete();
+
+        for (String filename : filenames) {
+            File file = new File(filename);
+            file.delete();
+        }
         return newFilename;
     }
 
