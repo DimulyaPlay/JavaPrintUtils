@@ -77,7 +77,7 @@ class JPrint {
         return text;
     }
 
-    static String concatenatePdfs(String[] filenames) throws IOException {
+    static String concatenatePdfs(String[] filenames, boolean isDel) throws IOException {
         String newFilename = filenames[0]+"+concatenated.pdf";
         PDFMergerUtility PDFMerger = new PDFMergerUtility();
         PDFMerger.setDestinationFileName(newFilename);
@@ -88,9 +88,11 @@ class JPrint {
 
         PDFMerger.mergeDocuments(MemoryUsageSetting.setupMainMemoryOnly());
 
-        for (String filename : filenames) {
-            File file = new File(filename);
-            file.delete();
+        if (isDel){
+            for (String filename : filenames) {
+                File file = new File(filename);
+                file.delete();
+            }
         }
         return newFilename;
     }
