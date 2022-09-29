@@ -4,6 +4,11 @@ import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Image;
+import com.spire.pdf.FileFormat;
+import com.spire.pdf.PdfPageBase;
+import com.spire.pdf.annotations.PdfRubberStampAnnotation;
+import com.spire.pdf.annotations.appearance.PdfAppearance;
+import com.spire.pdf.graphics.*;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.io.MemoryUsageSetting;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
@@ -13,6 +18,9 @@ import py4j.GatewayServer;
 
 import javax.print.DocPrintJob;
 import javax.print.PrintService;
+import java.awt.*;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.awt.print.PrinterException;
@@ -95,6 +103,31 @@ class JPrint {
             }
         }
         return newFilename;
+    }
+
+    static String addStamp(String filename, String numAppeal, String numDoc) {
+        String newFilename = filename + "_stamp.pdf";
+        com.spire.pdf.PdfDocument document = new com.spire.pdf.PdfDocument();
+        document.loadFromFile(filename);
+        PdfPageBase page = document.getPages().get(0);
+        PdfTemplate template = new PdfTemplate(125, 55);
+        PdfTrueTypeFont font = new PdfTrueTypeFont(new Font("Times New Roman", Font.BOLD,8), true);
+        PdfSolidBrush brush = new PdfSolidBrush(new PdfRGBColor(128,128, 128));
+        PdfPen pen = new PdfPen(brush);
+        Rectangle2D rectangle = new Rectangle2D.Float();
+        rectangle.setFrame(new Point2D.Float(5, 5), template.getSize());
+        String s1 = numAppeal;
+        String s2 = numDoc;
+        template.getGraphics().drawString(s1, font, brush, new Point2D.Float(10, 10));
+        template.getGraphics().drawString(s2, font, brush, new Point2D.Float(10, 20));
+        PdfRubberStampAnnotation stamp = new PdfRubberStampAnnotation(rectangle);
+        PdfAppearance appearance = new PdfAppearance(stamp);
+        appearance.setNormal(template);
+        stamp.setAppearance(appearance);
+        page.getAnnotationsWidget().add(stamp);
+        document.saveToFile(filename, FileFormat.PDF);
+        document.close();
+        return filename;
     }
 
     public static void main(String[] args) {
