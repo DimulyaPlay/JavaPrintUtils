@@ -18,6 +18,9 @@ import py4j.GatewayServer;
 
 import javax.print.DocPrintJob;
 import javax.print.PrintService;
+import javax.print.attribute.HashPrintRequestAttributeSet;
+import javax.print.attribute.PrintRequestAttributeSet;
+import javax.print.attribute.standard.Sides;
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -30,7 +33,7 @@ import java.io.IOException;
 
 class JPrint {
 
-    static void printToPrinter(String filepath, String printerName, String jobName) throws PrinterException {
+    static void printToPrinter(String filepath, String printerName, String jobName, int duplexMode) throws PrinterException {
         PrintService[] service = PrinterJob.lookupPrintServices();
         DocPrintJob docPrintJob = null;
         int count = service.length;
@@ -48,11 +51,25 @@ class JPrint {
         if (docPrintJob != null) {
             job.setPrintService(docPrintJob.getPrintService());
         }
+        PrintRequestAttributeSet aset = new HashPrintRequestAttributeSet();
+        switch (duplexMode){
+            case (0):
+                aset.add(Sides.ONE_SIDED);
+                break;
+            case (1):
+                aset.add(Sides.TWO_SIDED_LONG_EDGE);
+                break;
+            case (2):
+                aset.add(Sides.TWO_SIDED_SHORT_EDGE);
+                break;
+            default:
+                break;
+        }
         job.setJobName(jobName);
         loPageFormat.setPaper(loPaper);
         com.spire.pdf.PdfDocument document = new com.spire.pdf.PdfDocument(filepath);
         job.setPrintable(document, loPageFormat);
-        job.print();
+        job.print(aset);
         document.close();
     }
 
@@ -106,20 +123,17 @@ class JPrint {
     }
 
     static String addStamp(String filename, String numAppeal, String numDoc) {
-        String newFilename = filename + "_stamp.pdf";
         com.spire.pdf.PdfDocument document = new com.spire.pdf.PdfDocument();
         document.loadFromFile(filename);
         PdfPageBase page = document.getPages().get(0);
-        PdfTemplate template = new PdfTemplate(125, 55);
-        PdfTrueTypeFont font = new PdfTrueTypeFont(new Font("Times New Roman", Font.BOLD,8), true);
-        PdfSolidBrush brush = new PdfSolidBrush(new PdfRGBColor(128,128, 128));
+        PdfTemplate template = new PdfTemplate(600, 30);
+        PdfTrueTypeFont font = new PdfTrueTypeFont(new Font("Times New Roman", Font.BOLD,9), true);
+        PdfSolidBrush brush = new PdfSolidBrush(new PdfRGBColor(80,80, 80));
         PdfPen pen = new PdfPen(brush);
         Rectangle2D rectangle = new Rectangle2D.Float();
         rectangle.setFrame(new Point2D.Float(5, 5), template.getSize());
-        String s1 = numAppeal;
-        String s2 = numDoc;
-        template.getGraphics().drawString(s1, font, brush, new Point2D.Float(10, 10));
-        template.getGraphics().drawString(s2, font, brush, new Point2D.Float(10, 20));
+        template.getGraphics().drawString(numAppeal, font, brush, new Point2D.Float(480, 10));
+        template.getGraphics().drawString(numDoc, font, brush, new Point2D.Float(480, 20));
         PdfRubberStampAnnotation stamp = new PdfRubberStampAnnotation(rectangle);
         PdfAppearance appearance = new PdfAppearance(stamp);
         appearance.setNormal(template);
