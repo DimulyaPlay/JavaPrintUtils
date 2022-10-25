@@ -126,14 +126,18 @@ class JPrint {
         com.spire.pdf.PdfDocument document = new com.spire.pdf.PdfDocument();
         document.loadFromFile(filename);
         PdfPageBase page = document.getPages().get(0);
-        PdfTemplate template = new PdfTemplate(600, 30);
-        PdfTrueTypeFont font = new PdfTrueTypeFont(new Font("Times New Roman", Font.BOLD,9), true);
+        PdfTemplate template = new PdfTemplate(600, 70);
+        PdfTrueTypeFont font = new PdfTrueTypeFont(new Font("Times New Roman", Font.BOLD,8), true);
         PdfSolidBrush brush = new PdfSolidBrush(new PdfRGBColor(80,80, 80));
         PdfPen pen = new PdfPen(brush);
         Rectangle2D rectangle = new Rectangle2D.Float();
         rectangle.setFrame(new Point2D.Float(5, 5), template.getSize());
         template.getGraphics().drawString(numAppeal, font, brush, new Point2D.Float(480, 10));
         template.getGraphics().drawString(numDoc, font, brush, new Point2D.Float(480, 20));
+        if (" ‚ËÚ‡ÌˆËˇ".equals(numDoc)){
+            PdfTrueTypeFont font2 = new PdfTrueTypeFont(new Font("Times New Roman", Font.BOLD,12), true);
+            template.getGraphics().drawString("         œŒ—“”œ»À ¬ \n›À≈ “–ŒÕÕŒÃ ¬»ƒ≈", font2, brush, new Point2D.Float(410, 35));
+        }
         PdfRubberStampAnnotation stamp = new PdfRubberStampAnnotation(rectangle);
         PdfAppearance appearance = new PdfAppearance(stamp);
         appearance.setNormal(template);
