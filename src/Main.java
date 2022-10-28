@@ -20,6 +20,7 @@ import javax.print.DocPrintJob;
 import javax.print.PrintService;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
+import javax.print.attribute.standard.PageRanges;
 import javax.print.attribute.standard.Sides;
 import java.awt.*;
 import java.awt.geom.Point2D;
@@ -33,7 +34,7 @@ import java.io.IOException;
 
 class JPrint {
 
-    static void printToPrinter(String filepath, String printerName, String jobName, int duplexMode) throws PrinterException {
+    static void printToPrinter(String filepath, String printerName, String jobName, int duplexMode, int startPageRange, int endPageRange) throws PrinterException {
         PrintService[] service = PrinterJob.lookupPrintServices();
         DocPrintJob docPrintJob = null;
         int count = service.length;
@@ -65,6 +66,7 @@ class JPrint {
             default:
                 break;
         }
+        aset.add(new PageRanges(startPageRange,endPageRange));
         job.setJobName(jobName);
         loPageFormat.setPaper(loPaper);
         com.spire.pdf.PdfDocument document = new com.spire.pdf.PdfDocument(filepath);
