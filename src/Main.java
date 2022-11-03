@@ -9,10 +9,15 @@ import com.spire.pdf.PdfPageBase;
 import com.spire.pdf.annotations.PdfRubberStampAnnotation;
 import com.spire.pdf.annotations.appearance.PdfAppearance;
 import com.spire.pdf.graphics.*;
+import net.sourceforge.tess4j.ITesseract;
+import net.sourceforge.tess4j.Tesseract;
+import net.sourceforge.tess4j.TesseractException;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.io.MemoryUsageSetting;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.ImageType;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
 import py4j.GatewayServer;
 
@@ -25,12 +30,15 @@ import javax.print.attribute.standard.Sides;
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.CodeSource;
 
 class JPrint {
 
@@ -94,13 +102,27 @@ class JPrint {
         return filename+".pdf";
     }
 
-    static String extractTextFromPdf(String filename) throws IOException {
+    static String extractTextFromPdf(String filename, boolean ocr) throws IOException, TesseractException, URISyntaxException {
+        String text;
         File file = new File(filename);
-        PDDocument document = Loader.loadPDF(file);
-        PDFTextStripper pdfStripper = new PDFTextStripper();
-        String text = pdfStripper.getText(document);
-        document.close();
-        text = text.replace("\n", "").replace("\r", "");
+        if (ocr) {
+            ITesseract tess = new Tesseract();
+            CodeSource codeSource = JPrint.class.getProtectionDomain().getCodeSource();
+            File jarFile = new File(codeSource.getLocation().toURI().getPath());
+            String jarDir = jarFile.getParentFile().getPath();
+            tess.setDatapath(jarDir);
+            tess.setLanguage("rus");
+            PDDocument document = Loader.loadPDF(file);
+            PDFRenderer pdfRenderer = new PDFRenderer(document);
+            BufferedImage bim = pdfRenderer.renderImageWithDPI(0, 300, ImageType.GRAY);
+            text = tess.doOCR(bim);
+        } else {
+            PDDocument document = Loader.loadPDF(file);
+            PDFTextStripper pdfStripper = new PDFTextStripper();
+            text = pdfStripper.getText(document);
+            document.close();
+            text = text.replace("\n", "").replace("\r", "");
+        }
         return text;
     }
 
@@ -150,10 +172,14 @@ class JPrint {
         return filename;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws URISyntaxException {
         GatewayServer gatewayServer = new GatewayServer(new JPrint());
         gatewayServer.start();
         System.out.println("Gateway Server Started");
+        CodeSource codeSource = JPrint.class.getProtectionDomain().getCodeSource();
+        File jarFile = new File(codeSource.getLocation().toURI().getPath());
+        String jarDir = jarFile.getParentFile().getPath();
+        System.out.println(jarDir);
     }
 
 }
